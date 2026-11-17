@@ -12,19 +12,14 @@ from PySide6.QtGui import (
     QDesktopServices,
     QKeySequence,
 )
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QMessageBox,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QMainWindow, QMessageBox
 
 from activeControlBeamPlate import appConfig
 from activeControlBeamPlate.services import themeService
 from activeControlBeamPlate.services.manualWorker import ManualWorker
 from activeControlBeamPlate.ui.dialogs.aboutDialog import showAbout
 from activeControlBeamPlate.ui.dialogs.errorDialog import showError
+from activeControlBeamPlate.ui.structureTabsView import StructureTabsView
 from activeControlBeamPlate.ui.widgets.reportingView import ReportingView
 
 
@@ -38,15 +33,10 @@ class MainWindow(QMainWindow):
         self.buildMenuBar()
         self.showStatus("Ready")
 
-        self.greetButton = QPushButton("Say Hello")
-        self.greetButton.clicked.connect(self.onGreetClicked)
-
-        centralWidget = QWidget()
-        layout = QVBoxLayout(centralWidget)
-        layout.addWidget(self.greetButton)
-        layout.addStretch()
-
-        self.setCentralWidget(centralWidget)
+        # Beam / Plate, and under them every configuration: the whole app.
+        self.structureTabs = StructureTabsView()
+        self.connectView(self.structureTabs)
+        self.setCentralWidget(self.structureTabs)
 
     def buildMenuBar(self) -> None:
         # Menus are kept as attributes: features can extend them later, and it
@@ -105,8 +95,10 @@ class MainWindow(QMainWindow):
     def connectView(self, view: ReportingView) -> None:
         """Wire a view's status and failures into this window.
 
-        Call this for every view you add. Status goes to the bar, failures go
-        to a dialog, and the view is spared knowing which is which.
+        Status goes to the bar, failures go to a dialog, and the view is
+        spared knowing which is which. Called once, for the Beam / Plate
+        switch: a page inside the tabs is passed on by the TabbedView holding
+        it, so it reaches here without a call of its own.
         """
         view.statusMessage.connect(self.showStatus)
         view.errorMessage.connect(self.showError)
@@ -191,6 +183,3 @@ class MainWindow(QMainWindow):
             self.showStatus(
                 "Thank you - the donation page is opening in your browser."
             )
-
-    def onGreetClicked(self) -> None:
-        self.showStatus("Hello from Active Control Beam & Plate")

@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence
+from PySide6.QtGui import QKeySequence, QStandardItemModel
+from PySide6.QtWidgets import QTableView, QTabWidget
 
 from activeControlBeamPlate import appConfig
 from activeControlBeamPlate.services import themeService
+from activeControlBeamPlate.ui import tabTheme
 from activeControlBeamPlate.ui.mainWindow import MainWindow
+from activeControlBeamPlate.ui.widgets.fullWidthTabWidget import FullWidthTabWidget
+from activeControlBeamPlate.ui.widgets.reportingView import ReportingView
+from activeControlBeamPlate.ui.widgets.tabbedView import TabbedView
 
 
 def testMainWindowOpens(qtbot) -> None:
@@ -20,14 +26,110 @@ def testMainWindowOpens(qtbot) -> None:
     assert mainWindow.statusBar().currentMessage() == "Ready"
 
 
-def testGreetButtonUpdatesLabel(qtbot) -> None:
+def testTheWindowIsTheBeamAndPlateTabs(qtbot) -> None:
     mainWindow = MainWindow()
     qtbot.addWidget(mainWindow)
     mainWindow.show()
 
-    qtbot.mouseClick(mainWindow.greetButton, Qt.MouseButton.LeftButton)
+    assert mainWindow.centralWidget() is mainWindow.structureTabs
+    assert mainWindow.structureTabs.pageTitles() == ["Beam", "Plate"]
+    assert mainWindow.structureTabs.tabs.isVisible()
 
-    assert mainWindow.statusBar().currentMessage() == "Hello from Active Control Beam & Plate"
+
+def testClickingPlateOpensThePlatePage(qtbot) -> None:
+    mainWindow = MainWindow()
+    qtbot.addWidget(mainWindow)
+    mainWindow.show()
+    qtbot.waitExposed(mainWindow)
+    structureTabs = mainWindow.structureTabs
+    tabBar = structureTabs.tabs.tabBar()
+
+    qtbot.mouseClick(tabBar, Qt.MouseButton.LeftButton, pos=tabBar.tabRect(1).center())
+
+    assert structureTabs.tabs.currentWidget() is structureTabs.plateView
+    assert structureTabs.plateView.isVisible()
+    assert not structureTabs.beamView.isVisible()
+
+
+def testEveryTabControlInTheWindowIsHighlighted(qtbot) -> None:
+    """The rule for the whole app: no bare QTabWidget, at any depth.
+
+    Child controls are added here the way the app will grow, so the check
+    covers levels the app does not have yet; it then holds for every view
+    added later, because the window is searched rather than a list kept.
+    """
+    mainWindow = MainWindow()
+    qtbot.addWidget(mainWindow)
+    configuration = TabbedView()
+    configuration.addPage("Variant", TabbedView())
+    mainWindow.structureTabs.beamView.addPage("Configuration", configuration)
+
+    controls = mainWindow.findChildren(QTabWidget)
+
+    assert len(controls) >= 4  # the switch, both structures, and the levels added above
+    assert all(isinstance(control, FullWidthTabWidget) for control in controls)
+
+
+def testAPageDeepInTheTabsReachesTheWindow(qtbot, monkeypatch) -> None:
+    """Status to the bar and failures to a dialog, from a page nobody connected by hand."""
+    mainWindow = MainWindow()
+    qtbot.addWidget(mainWindow)
+    shown: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        MainWindow,
+        "showError",
+        lambda self, title, message: shown.append((title, message)),
+    )
+    configuration = TabbedView()
+    page = ReportingView()
+    configuration.addPage("Page", page)
+    mainWindow.structureTabs.plateView.addPage("Configuration", configuration)
+
+    page.reportStatus("Solving...")
+    assert mainWindow.statusBar().currentMessage() == "Solving..."
+
+    page.reportError("Model", "The model did not converge.\nRefine the mesh and run again.")
+
+    assert shown == [("Model", "The model did not converge.\nRefine the mesh and run again.")]
+    assert mainWindow.statusBar().currentMessage() == "The model did not converge."
+
+
+def testHelpThemeRepaintsEveryLevelOfTabs(qtbot, qapp, observableColorScheme) -> None:
+    """Help > Theme has to reach a page three tab controls down, not only the switch.
+
+    Styled tabs stop passing palette changes on unless they are told to; see
+    FullWidthTabWidget.reinheritPalette. Only a real scheme change shows it,
+    so this skips on the offscreen plugin and runs under a plain `pytest`.
+    """
+    if not observableColorScheme:
+        pytest.skip("this platform plugin does not report a forced colour scheme")
+    qapp.styleHints().setColorScheme(Qt.ColorScheme.Dark)
+    mainWindow = MainWindow()
+    qtbot.addWidget(mainWindow)
+    table = QTableView()
+    table.setModel(QStandardItemModel(2, 2))
+    configuration = TabbedView()
+    configuration.addPage("Table", table)
+    mainWindow.structureTabs.beamView.addPage("Configuration", configuration)
+    mainWindow.show()
+    qtbot.wait(200)
+    controls = mainWindow.findChildren(FullWidthTabWidget)
+    accents = {
+        themeService.lightTheme: tabTheme.lightAccent,
+        themeService.darkTheme: tabTheme.darkAccent,
+    }
+
+    for theme in (themeService.lightTheme, themeService.darkTheme, themeService.lightTheme):
+        mainWindow.themeActions[theme].trigger()
+
+        qtbot.waitUntil(
+            lambda: table.palette().base().color() == qapp.palette().base().color(),
+            timeout=3000,
+        )
+        qtbot.waitUntil(
+            lambda: all(accents[theme] in control.styleSheet() for control in controls),
+            timeout=3000,
+        )
 
 
 def testMenuBarStructure(qtbot) -> None:
