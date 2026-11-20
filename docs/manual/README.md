@@ -80,8 +80,39 @@ Like the beam's figure, it is drawn in the window's own colours, and the key und
 English for its French labels (Plaque: plate, Actionneur: actuator, Conditions limites:
 boundary conditions, Coupe A-A: section A-A).
 
-The figure has no sensor; the plate's sensor will be added later. Plate > Configuration >
-Parameters, Actuation and Sensing have no content yet.
+The figure has no sensor; the plate's sensor will be added later.
+
+**Plate > Configuration > Parameters** is Table 5.1 of the thesis, laid out as it is printed: a
+column each for the primary actuator, the secondary actuator and the plate.
+
+| Row | Unit | For |
+|-----|------|-----|
+| Length L<sub>x</sub>, Width L<sub>y</sub>, Thickness L<sub>z</sub> | mm | All three |
+| Density ρ | kg/m³ | All three |
+| Young's modulus Y, real and imaginary part | N/m² | All three |
+| Poisson's ratio ν | - | All three |
+| e<sub>zx</sub> | N/(V·m) | The actuators |
+| d<sub>zx</sub> | m/V | The actuators |
+| Position x<sub>a</sub>, y<sub>a</sub> | mm | The actuators |
+
+An actuator is a pair of identical piezoceramics at the same place, one on each face of the
+plate, so its values are those of one of them. Its position is that of its centre, measured
+from the centre of the plate, x along the length and y along the width. Young's modulus is
+complex: its imaginary part is the damping. Large and small values (63e9, 210e-12) can be typed
+in that form.
+
+Under the table, **Edge Supports** holds the springs Figure 5.1 draws along each edge of the
+plate: a transverse one (N/m²), which resists the edge moving out of the plane, and a rotational
+one (N/rad), which resists it turning, both per metre of edge and both complex. Table 5.1's
+plate is simply supported - held transversely and free to rotate - but the thesis does not give
+the stiffness values, so they start at 0, free edges; type the values that model your supports.
+
+As on the beam's page, what you type is kept and comes back next time, **Restore Table 5.1
+Values** puts the table back (with free edges), and a line in red says when the values do not
+describe a plate that can be built: an actuator past an edge, two actuators overlapping, a size
+of zero, a Poisson's ratio outside -1 to 0.5.
+
+Plate > Actuation and Sensing have no content yet.
 
 ## Light and dark
 

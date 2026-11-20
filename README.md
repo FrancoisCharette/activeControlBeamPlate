@@ -28,7 +28,15 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
 - **Plate > Configuration > Schematic** shows Figure 5.1, the plate with its edge springs and
   one actuator, in plan and in section A-A, rendered and themed the same way. The figure has no
   sensor; the plate's sensor properties are still to be added.
-- The other pages have no content yet, and each says so.
+- **Plate > Configuration > Parameters** is Table 5.1 laid out as printed - the primary
+  actuator, the secondary actuator and the plate side by side: dimensions, density, complex
+  Young's modulus, Poisson's ratio, and for the actuators e<sub>zx</sub>, d<sub>zx</sub> and
+  the centre position (x<sub>a</sub>, y<sub>a</sub>) from the plate's centre. Under it, the
+  transverse and rotational edge springs of Figure 5.1 for each of the four edges, per metre of
+  edge, complex. Table 5.1's plate is simply supported but the thesis gives no spring values,
+  so they start at 0. Kept as typed, checked (an actuator past an edge, two overlapping), and
+  restorable to Table 5.1.
+- Actuation and Sensing, under both structures, have no content yet, and each says so.
 - The app reopens as it was left: the window's position and size (maximised included), and the
   open tab at every level - each structure keeps its own sub-tab. See *Where settings live*.
 - Every tab control, at any depth, is highlighted the way 26wagerBook's are: the tabs share the
@@ -87,6 +95,7 @@ runs without windows, and skips the few tests that need a real light / dark swit
 | `window/geometry` | The window's position and size, as Qt's geometry blob | When the window closes |
 | `beam/geometry/...` | The Beam > Parameters dimensions, in mm, one key per field of `BeamGeometry` | When one is changed |
 | `beam/supports/<spring>/real`, `.../imag` | The six end springs, real and imaginary parts, one pair per field of `BeamSupports` | When one is changed |
+| `plate/<path>` | The Plate > Parameters values, one key per number of `PlateConfiguration` by its path (`plate/primaryActuator/positionX`, `plate/supports/edgeXNegative/transverse/real`) | When one is changed |
 | `window/openTabs` | The open tab of every tab control, as JSON: `{"": "Plate", "Beam": "Actuation", ...}` | When the window closes |
 
 A tab control's key is the titles of the tabs above it, joined with `/` (`""` for Beam / Plate,
@@ -112,7 +121,7 @@ MainWindow
     └── PlateView                  Configuration | Actuation | Sensing
         ├── PlateConfigurationView Schematic | Parameters
         │   ├── PlateSchematicView  Figure 5.1
-        │   └── PlateParametersView empty for now
+        │   └── PlateParametersView Table 5.1 and the edge springs
         ├── PlateActuationView     empty for now
         └── PlateSensingView       empty for now
 ```
@@ -184,12 +193,16 @@ That is the whole step. Nothing is registered anywhere else, and the main window
 | | `src/activeControlBeamPlate/ui/widgets/scaledImageView.py` | An image scaled to fit its page, for the thesis figures; line art can follow the theme |
 | | `src/activeControlBeamPlate/resources/beamSchematic.png` | Figure 2.1, cropped from page 21 of `PhD thesis.pdf` at 600 dpi |
 | | `src/activeControlBeamPlate/resources/plateSchematic.png` | Figure 5.1, cropped from page 110 the same way |
+| | `src/activeControlBeamPlate/ui/plate/plateParametersView.py`, `plateEdgesBox.py` | Plate > Parameters: Table 5.1 and the Edge Supports group |
 | | `src/activeControlBeamPlate/ui/widgets/reportingView.py` | Base for a page that reports status and failures |
 | | `src/activeControlBeamPlate/ui/dialogs/` | About and error dialogs |
 | Models | `src/activeControlBeamPlate/models/beamGeometry.py` | `BeamGeometry`: the dimensions of Figure 2.1, defaulting to Table 2.2 |
 | | `src/activeControlBeamPlate/models/beamSupports.py` | `BeamSupports`: the six complex end springs, defaulting to free ends |
 | Services | `src/activeControlBeamPlate/services/beamGeometryService.py` | Checks the beam dimensions, and saves and loads them |
 | | `src/activeControlBeamPlate/services/beamSupportsService.py` | Checks the end springs, and saves and loads them |
+| | `src/activeControlBeamPlate/models/plateConfiguration.py` | `PlateConfiguration`: the plate, its two actuators and its edge springs, defaulting to Table 5.1 |
+| | `src/activeControlBeamPlate/services/plateConfigurationService.py` | Checks the plate configuration, and saves and loads it |
+| | `src/activeControlBeamPlate/services/flatValues.py` | Nested dataclasses as flat `a/b/c` keys and back: one name for a setting and its input |
 | | `src/activeControlBeamPlate/services/windowStateService.py` | Saves and loads the window's position and open tabs |
 | | `src/activeControlBeamPlate/services/` | Business logic (no Qt widgets) |
 | Models | `src/activeControlBeamPlate/models/` | Plain Python data types |

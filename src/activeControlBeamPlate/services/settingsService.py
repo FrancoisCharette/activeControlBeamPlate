@@ -12,7 +12,13 @@ def openSettings() -> QSettings:
 
 
 def writeValue(key: str, value: object) -> None:
+    writeValues({key: value})
+
+
+def writeValues(values: dict[str, object]) -> None:
+    """Several keys in one write of the file, rather than one write each."""
     appConfig.settingsFile.parent.mkdir(parents=True, exist_ok=True)
     settings = openSettings()
-    settings.setValue(key, value)
+    for key, value in values.items():
+        settings.setValue(key, value)
     settings.sync()
