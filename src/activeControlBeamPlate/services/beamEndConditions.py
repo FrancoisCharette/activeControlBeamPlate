@@ -32,15 +32,9 @@ from enum import Enum
 from activeControlBeamPlate.models.beamGeometry import BeamGeometry
 from activeControlBeamPlate.models.beamMaterials import BeamMaterials
 from activeControlBeamPlate.models.beamSupports import BeamSupports
+from activeControlBeamPlate.services.springDamping import damped, matches, sharedLossFactor
 
 holdingFactor = 1e6
-# Loss factors offered, as fractions: 0 % to 10 %.
-lossFactors = (0.0, 0.001, 0.002, 0.004, 0.008, 0.01, 0.02, 0.05, 0.1)
-# Relative difference within which two loss factors are the same one.
-lossTolerance = 1e-6
-# Relative difference within which a real part is still the value a Condition put
-# there: far below anything typed, well above the rounding of a saved setting.
-stiffnessTolerance = 1e-9
 
 
 class EndCondition(Enum):
@@ -102,19 +96,7 @@ def beamStiffnesses(geometry: BeamGeometry, materials: BeamMaterials) -> tuple[f
 
 def lossFactorOf(supports: BeamSupports, end: str) -> float | None:
     """The loss factor the end's springs share; 0 with nothing held; None if they differ."""
-    factors = []
-    for name in endFields[end]:
-        stiffness: complex = getattr(supports, name)
-        if stiffness.real > 0:
-            factors.append(stiffness.imag / stiffness.real)
-        elif stiffness.imag != 0:
-            return None  # damping on a spring with no stiffness: no loss factor
-    if not factors:
-        return 0.0
-    first = factors[0]
-    if all(abs(factor - first) <= lossTolerance * max(1.0, abs(first)) for factor in factors):
-        return first
-    return None
+    return sharedLossFactor([getattr(supports, name) for name in endFields[end]])
 
 
 def recommendedReals(
@@ -146,10 +128,7 @@ def conditionOf(
                 expected = (0.0, 0.0, 0.0)
             else:
                 continue
-        if all(
-            abs(real - target) <= stiffnessTolerance * abs(target)
-            for real, target in zip(reals, expected, strict=True)
-        ):
+        if matches(reals, expected):
             return condition
     return None
 
@@ -173,11 +152,5 @@ def withCondition(
 def withLossFactor(supports: BeamSupports, end: str, lossFactor: float) -> BeamSupports:
     """The end's springs damped by `lossFactor`: imaginary part = η × real part."""
     return replace(supports, **{
-        name: complex(getattr(supports, name).real, lossFactor * getattr(supports, name).real)
-        for name in endFields[end]
+        name: damped(getattr(supports, name), lossFactor) for name in endFields[end]
     })
-
-
-def lossFactorText(lossFactor: float) -> str:
-    """'0.1 %', '2 %': as a menu or a button says it."""
-    return f"{lossFactor * 100:g} %"

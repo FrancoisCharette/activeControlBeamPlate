@@ -34,9 +34,8 @@ from activeControlBeamPlate.services.beamEndConditions import (
     conditionHelp,
     holdingFactor,
     lossFactorOf,
-    lossFactors,
-    lossFactorText,
 )
+from activeControlBeamPlate.services.springDamping import lossFactors, lossFactorText
 from activeControlBeamPlate.ui.widgets.scientificSpinBox import ScientificSpinBox
 
 supportsNote = (

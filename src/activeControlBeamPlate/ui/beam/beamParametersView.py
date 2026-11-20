@@ -39,6 +39,7 @@ from activeControlBeamPlate.services import (
     beamGeometryService,
     beamMaterialsService,
     beamSupportsService,
+    springDamping,
 )
 from activeControlBeamPlate.services.beamEndConditions import EndCondition, EndConditionError
 from activeControlBeamPlate.ui.beam.beamMaterialsBox import BeamMaterialsBox
@@ -256,7 +257,7 @@ class BeamParametersView(ReportingView):
         self.onSupportsEdited()
         self.reportStatus(
             f"{end.capitalize()} end damped with a loss factor of "
-            f"{beamEndConditions.lossFactorText(lossFactor)}."
+            f"{springDamping.lossFactorText(lossFactor)}."
         )
 
     def onSupportsEdited(self) -> None:

@@ -150,7 +150,23 @@ Under the table, **Edge Supports** holds the springs Figure 5.1 draws along each
 plate: a transverse one (N/m²), which resists the edge moving out of the plane, and a rotational
 one (N/rad), which resists it turning, both per metre of edge and both complex. Table 5.1's
 plate is simply supported - held transversely and free to rotate - but the thesis does not give
-the stiffness values, so they start at 0, free edges; type the values that model your supports.
+the stiffness values, so they start at 0, free edges.
+
+As on the beam, each edge has two buttons above its springs, and **All Edges**, at the top, does
+the same to the four edges at once:
+
+- **Condition** fills the real parts: **Free** (both 0), **Simply Supported** (held out of the
+  plane, free to turn - Table 5.1's plate) or **Clamped** (both held). A held spring is a
+  million times the plate's own stiffness across that edge, D/L³ transversely and D/L in
+  rotation, with D = E h³ / 12(1 - ν²) and L the plate's length for the x edges or its width
+  for the y edges, from the values on this page when you choose. A Rayleigh-Ritz check on the
+  plate of Table 5.1 puts its first six natural frequencies within 0.1 % of ideal edges at
+  that level, and its first simply supported mode at 76.8 Hz against the thesis's 77.5 Hz
+  (Table 5.2). These values are this app's recommendation, not the thesis's.
+- **Damping** sets the imaginary parts to a loss factor η times the real parts, 0 % to 10 %.
+
+The buttons say what the values are now: Custom once you change a value by hand, or the plate
+the values were worked out for, and Mixed on All Edges when the edges differ.
 
 As on the beam's page, what you type is kept and comes back next time, **Restore Table 5.1
 Values** puts the table back (with free edges), and a line in red says when the values do not

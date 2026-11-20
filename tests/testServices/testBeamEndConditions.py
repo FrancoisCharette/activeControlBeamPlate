@@ -160,9 +160,3 @@ def testTheLossFactorIsNoneWhenTheSpringsDisagree() -> None:
 def testAFreeEndHasNoDamping() -> None:
     assert lossFactorOf(BeamSupports(), "left") == 0.0
     assert withLossFactor(BeamSupports(), "left", 0.05) == BeamSupports()
-
-
-def testTheOfferedLevelsRunFromNoneToTenPercent() -> None:
-    texts = [beamEndConditions.lossFactorText(level) for level in beamEndConditions.lossFactors]
-
-    assert texts == ["0 %", "0.1 %", "0.2 %", "0.4 %", "0.8 %", "1 %", "2 %", "5 %", "10 %"]

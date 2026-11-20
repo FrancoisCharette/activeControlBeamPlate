@@ -125,3 +125,97 @@ def testItIsTheParametersTabOfThePlateConfiguration(qtbot) -> None:
 
     assert isinstance(configuration.parametersView, PlateParametersView)
     assert configuration.tabs.widget(1) is configuration.parametersView
+
+
+def menuAction(button, text: str):
+    return next(action for action in button.menu().actions() if action.text() == text)
+
+
+edgeKeys = ("edgeXNegative", "edgeXPositive", "edgeYNegative", "edgeYPositive")
+
+
+def testEachEdgeAndAllEdgesHaveAConditionAndADampingButton(qtbot) -> None:
+    view = newView(qtbot)
+    box = view.edgesBox
+
+    for key in ("all", *edgeKeys):
+        conditions = [action.text() for action in box.conditionButtons[key].menu().actions()]
+        assert conditions == ["Free", "Simply Supported", "Clamped"]
+        levels = [action.text() for action in box.dampingButtons[key].menu().actions()]
+        assert levels[:7] == ["0 %", "0.1 %", "0.2 %", "0.4 %", "0.8 %", "1 %", "2 %"]
+        assert box.conditionButtons[key].text() == "Condition: Free"
+        assert box.dampingButtons[key].text() == "Damping: 0 %"
+
+
+def testAllEdgesSetsTheFourAndIsKept(qtbot) -> None:
+    view = newView(qtbot)
+    box = view.edgesBox
+    statuses: list[str] = []
+    view.statusMessage.connect(statuses.append)
+
+    menuAction(box.conditionButtons["all"], "Simply Supported").trigger()
+
+    supports = view.configuration().supports
+    for key in edgeKeys:
+        edge = getattr(supports, key)
+        assert edge.transverse.real > 0 and edge.rotational == 0
+        assert box.conditionButtons[key].text() == "Condition: Simply Supported"
+    assert box.conditionButtons["all"].text() == "Condition: Simply Supported"
+    assert plateConfigurationService.loadConfiguration().supports == supports
+    assert statuses[-1] == "All edges set to Simply Supported."
+
+
+def testOneEdgeAloneMakesAllEdgesMixed(qtbot) -> None:
+    view = newView(qtbot)
+    box = view.edgesBox
+    menuAction(box.conditionButtons["all"], "Clamped").trigger()
+
+    menuAction(box.dampingButtons["edgeYPositive"], "1 %").trigger()
+
+    edge = view.configuration().supports.edgeYPositive
+    assert edge.transverse.imag == edge.transverse.real * 0.01
+    assert box.dampingButtons["edgeYPositive"].text() == "Damping: 1 %"
+    assert box.dampingButtons["all"].text() == "Damping: Mixed"
+    assert box.conditionButtons["all"].text() == "Condition: Clamped"
+
+
+def testEditingAValueByHandShowsCustom(qtbot) -> None:
+    view = newView(qtbot)
+    box = view.edgesBox
+    menuAction(box.conditionButtons["edgeXNegative"], "Clamped").trigger()
+
+    view.inputs["supports/edgeXNegative/rotational/real"].setValue(5.0)
+
+    assert box.conditionButtons["edgeXNegative"].text() == "Condition: Custom"
+    assert box.conditionButtons["all"].text() == "Condition: Mixed"
+
+
+def testChangingThePlateTurnsAChosenConditionToCustom(qtbot) -> None:
+    view = newView(qtbot)
+    box = view.edgesBox
+    menuAction(box.conditionButtons["all"], "Simply Supported").trigger()
+
+    view.inputs["plate/thickness"].setValue(3.0)
+
+    assert all(box.conditionButtons[key].text() == "Condition: Custom" for key in edgeKeys)
+
+
+def testAChosenConditionIsRecognisedAfterARestart(qtbot) -> None:
+    first = newView(qtbot)
+    menuAction(first.edgesBox.conditionButtons["all"], "Clamped").trigger()
+
+    second = newView(qtbot)
+
+    assert second.edgesBox.conditionButtons["all"].text() == "Condition: Clamped"
+
+
+def testAConditionNeedsAPlateToScaleFrom(qtbot) -> None:
+    view = newView(qtbot)
+    view.inputs["plate/thickness"].setValue(0.0)
+    statuses: list[str] = []
+    view.statusMessage.connect(statuses.append)
+
+    menuAction(view.edgesBox.conditionButtons["all"], "Clamped").trigger()
+
+    assert view.configuration().supports == PlateSupports()
+    assert "must be greater than zero" in statuses[-1]

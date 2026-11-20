@@ -13,7 +13,7 @@ can be built - an actuator past an edge, two actuators overlapping.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -29,10 +29,18 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from activeControlBeamPlate.models.plateConfiguration import PlateConfiguration
-from activeControlBeamPlate.services import plateConfigurationService
+from activeControlBeamPlate.models.plateConfiguration import PlateConfiguration, PlateSupports
+from activeControlBeamPlate.services import (
+    plateConfigurationService,
+    plateEdgeConditions,
+    springDamping,
+)
 from activeControlBeamPlate.services.flatValues import flatten, join, rebuild
-from activeControlBeamPlate.ui.plate.plateEdgesBox import PlateEdgesBox
+from activeControlBeamPlate.services.plateEdgeConditions import (
+    EdgeCondition,
+    EdgeConditionError,
+)
+from activeControlBeamPlate.ui.plate.plateEdgesBox import PlateEdgesBox, allEdges
 from activeControlBeamPlate.ui.widgets.reportingView import ReportingView
 from activeControlBeamPlate.ui.widgets.scientificSpinBox import ScientificSpinBox
 
@@ -106,8 +114,11 @@ class PlateParametersView(ReportingView):
         note.setWordWrap(True)
         layout.addWidget(note)
         self.edgesBox = PlateEdgesBox()
+        self.edgesBox.recognizeCondition = self.recognizeCondition
         for path, spinBox in self.edgesBox.inputs.items():
             self.inputs[join("supports", path)] = spinBox
+        self.edgesBox.conditionChosen.connect(self.onConditionChosen)
+        self.edgesBox.lossFactorChosen.connect(self.onLossFactorChosen)
         layout.addWidget(self.edgesBox)
 
         self.problemLabel = QLabel()
@@ -185,6 +196,7 @@ class PlateParametersView(ReportingView):
             spinBox.blockSignals(True)
             spinBox.setValue(value)
             spinBox.blockSignals(False)
+        self.edgesBox.refreshButtons()
         self.showProblems(configuration)
 
     def showProblems(self, configuration: PlateConfiguration) -> None:
@@ -193,7 +205,57 @@ class PlateParametersView(ReportingView):
         self.problemLabel.setVisible(bool(problems))
 
     def onEdited(self, _value: float) -> None:
+        # A plate made thicker changes what each condition means, so the buttons
+        # are redone whatever was edited.
+        self.edgesBox.refreshButtons()
         self.applyConfiguration(self.configuration())
+
+    def recognizeCondition(self, supports: PlateSupports, edge: str) -> EdgeCondition | None:
+        """The condition the edge's springs are, for the plate as the inputs now describe it."""
+        return plateEdgeConditions.conditionOf(supports, edge, self.configuration().plate)
+
+    @staticmethod
+    def edgesFor(key: str) -> tuple[str, ...]:
+        return plateEdgeConditions.edges if key == allEdges else (key,)
+
+    @staticmethod
+    def edgeName(key: str) -> str:
+        if key == allEdges:
+            return "All edges"
+        axis, sign = key[4].lower(), "-" if key.endswith("Negative") else "+"
+        return f"Edge {axis} = {sign}L_{axis}/2"
+
+    def onConditionChosen(self, key: str, condition: EdgeCondition) -> None:
+        """Fill the edge's real parts - or all four edges' - scaled to the plate as it now is."""
+        configuration = self.configuration()
+        supports = configuration.supports
+        try:
+            for edge in self.edgesFor(key):
+                supports = plateEdgeConditions.withCondition(
+                    supports, edge, condition, configuration.plate
+                )
+        except EdgeConditionError as error:
+            # A nudge to fill something in, which the red line already names.
+            self.reportStatus(str(error))
+            return
+        self.applyEdges(supports)
+        self.reportStatus(f"{self.edgeName(key)} set to {condition.label}.")
+
+    def onLossFactorChosen(self, key: str, lossFactor: float) -> None:
+        """Fill the edge's imaginary parts - or all four edges' - with the loss factor."""
+        supports = self.configuration().supports
+        for edge in self.edgesFor(key):
+            supports = plateEdgeConditions.withLossFactor(supports, edge, lossFactor)
+        self.applyEdges(supports)
+        self.reportStatus(
+            f"{self.edgeName(key)} damped with a loss factor of "
+            f"{springDamping.lossFactorText(lossFactor)}."
+        )
+
+    def applyEdges(self, supports: PlateSupports) -> None:
+        configuration = replace(self.configuration(), supports=supports)
+        self.showConfiguration(configuration)
+        self.applyConfiguration(configuration)
 
     def onRestoreClicked(self) -> None:
         configuration = PlateConfiguration()

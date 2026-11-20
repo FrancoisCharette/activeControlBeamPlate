@@ -41,7 +41,10 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
   the centre position (x<sub>a</sub>, y<sub>a</sub>) from the plate's centre. Under it, the
   transverse and rotational edge springs of Figure 5.1 for each of the four edges, per metre of
   edge, complex. Table 5.1's plate is simply supported but the thesis gives no spring values,
-  so they start at 0. Kept as typed, checked (an actuator past an edge, two overlapping), and
+  so they start at 0. Each edge, and All Edges at once, has a **Condition** button (Free,
+  Simply Supported, Clamped) - a held spring is 10<sup>6</sup> times the plate's own D/L³ or
+  D/L across that edge, within 0.1 % of ideal edges on the first six modes - and a
+  **Damping** button, as on the beam. Kept as typed, checked (an actuator past an edge, two overlapping), and
   restorable to Table 5.1.
 - Actuation and Sensing, under both structures, have no content yet, and each says so.
 - The app reopens as it was left: the window's position and size (maximised included), and the
@@ -235,6 +238,8 @@ A test fails if the drawing was changed and the icon not redrawn.
 | | `src/activeControlBeamPlate/models/beamMaterials.py` | `BeamMaterials`: Table 2.2's densities, Young's moduli and piezoelectric constants |
 | | `src/activeControlBeamPlate/models/beamSupports.py` | `BeamSupports`: the six complex end springs, defaulting to free ends |
 | Services | `src/activeControlBeamPlate/services/beamGeometryService.py` | Checks the beam dimensions, and saves and loads them |
+| | `src/activeControlBeamPlate/services/springDamping.py` | Loss-factor damping of support springs, shared by beam ends and plate edges |
+| | `src/activeControlBeamPlate/services/plateEdgeConditions.py` | The recommended plate edge springs for Free / Simply Supported / Clamped; the Ritz check behind 10<sup>6</sup> is in its docstring |
 | | `src/activeControlBeamPlate/services/beamEndConditions.py` | The recommended end springs for Free / Pinned / Roller / Clamped, and loss-factor damping; why 10<sup>6</sup> is in its docstring |
 | | `src/activeControlBeamPlate/services/beamMaterialsService.py` | Checks the beam materials, and saves and loads them |
 | | `src/activeControlBeamPlate/services/beamSupportsService.py` | Checks the end springs, and saves and loads them |
