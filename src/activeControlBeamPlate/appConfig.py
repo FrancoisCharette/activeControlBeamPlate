@@ -13,9 +13,9 @@ organizationName = "Charette-AI-Group"
 editorName = "Francois Charette, PhD"
 aiAgentName = "Claude - Opus 5"
 copyrightHolder = "Charette AI Group, LLC"
-# createNewApp rewrites the package name throughout, so this follows the repo
-# it actually creates without anyone having to remember to edit it.
-repoUrl = "https://github.com/Charette-AI-Group/activeControlBeamPlate"
+# The thesis app lives in the author's personal account, not the group's
+# organization the template defaults to (a private repo).
+repoUrl = "https://github.com/FrancoisCharette/activeControlBeamPlate"
 
 # Donate button, shared across the Charette AI Group applications so they look
 # like they come from the same place.
