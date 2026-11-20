@@ -71,6 +71,18 @@ do not describe a beam that can be built - a transducer that runs past an end of
 length or thickness of zero - a line in red under the inputs says what is wrong, until it is
 fixed.
 
+## The plate
+
+**Plate > Configuration > Schematic** shows Figure 5.1 of the thesis: a rectangular plate held
+along each edge by springs, with one actuator at (X<sub>a</sub>, Y<sub>a</sub>). On the right,
+section A-A shows that the actuator is a pair of piezoceramics, one on each face of the plate.
+Like the beam's figure, it is drawn in the window's own colours, and the key under it gives the
+English for its French labels (Plaque: plate, Actionneur: actuator, Conditions limites:
+boundary conditions, Coupe A-A: section A-A).
+
+The figure has no sensor; the plate's sensor will be added later. Plate > Configuration >
+Parameters, Actuation and Sensing have no content yet.
+
 ## Light and dark
 
 The app follows the Windows light / dark setting. To choose for this app alone, use

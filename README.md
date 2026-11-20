@@ -25,6 +25,9 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
 
   Everything is kept as it is typed, and a line under the inputs says when the values do not
   describe a beam that can be built.
+- **Plate > Configuration > Schematic** shows Figure 5.1, the plate with its edge springs and
+  one actuator, in plan and in section A-A, rendered and themed the same way. The figure has no
+  sensor; the plate's sensor properties are still to be added.
 - The other pages have no content yet, and each says so.
 - The app reopens as it was left: the window's position and size (maximised included), and the
   open tab at every level - each structure keeps its own sub-tab. See *Where settings live*.
@@ -108,7 +111,7 @@ MainWindow
     │   └── BeamSensingView        empty for now
     └── PlateView                  Configuration | Actuation | Sensing
         ├── PlateConfigurationView Schematic | Parameters
-        │   ├── PlateSchematicView  empty for now
+        │   ├── PlateSchematicView  Figure 5.1
         │   └── PlateParametersView empty for now
         ├── PlateActuationView     empty for now
         └── PlateSensingView       empty for now
@@ -177,8 +180,10 @@ That is the whole step. Nothing is registered anywhere else, and the main window
 | | `src/activeControlBeamPlate/ui/widgets/tabStyling.py`, `ui/tabTheme.py` | How the open tab is marked, and the accent colours |
 | | `src/activeControlBeamPlate/ui/beam/beamSupportsBox.py` | The End Supports group of Beam > Parameters |
 | | `src/activeControlBeamPlate/ui/widgets/scientificSpinBox.py` | A number box that reads and writes `1e12`, stepping by tens |
+| | `src/activeControlBeamPlate/ui/widgets/figureView.py` | A page showing one thesis figure with its caption and a key to its French labels; both Schematic tabs are one |
 | | `src/activeControlBeamPlate/ui/widgets/scaledImageView.py` | An image scaled to fit its page, for the thesis figures; line art can follow the theme |
 | | `src/activeControlBeamPlate/resources/beamSchematic.png` | Figure 2.1, cropped from page 21 of `PhD thesis.pdf` at 600 dpi |
+| | `src/activeControlBeamPlate/resources/plateSchematic.png` | Figure 5.1, cropped from page 110 the same way |
 | | `src/activeControlBeamPlate/ui/widgets/reportingView.py` | Base for a page that reports status and failures |
 | | `src/activeControlBeamPlate/ui/dialogs/` | About and error dialogs |
 | Models | `src/activeControlBeamPlate/models/beamGeometry.py` | `BeamGeometry`: the dimensions of Figure 2.1, defaulting to Table 2.2 |

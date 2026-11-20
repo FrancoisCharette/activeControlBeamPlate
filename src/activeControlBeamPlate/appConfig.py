@@ -31,6 +31,11 @@ resourcesDir = Path(__file__).resolve().parent / "resources"
 # the original PDF, so it stays sharp at any window size. Its labels are the
 # original French ones.
 beamSchematicImage = resourcesDir / "beamSchematic.png"
+# Figure 5.1, "Diagram of the plate-actuator configuration considered" (page
+# 110): the plate with its edge springs and one actuator, in plan and in
+# section A-A. Rendered the same way. It has no sensor; the thesis adds the
+# PVDF sensors to the plate later.
+plateSchematicImage = resourcesDir / "plateSchematic.png"
 
 # Help > User Manual. The copy in the checkout is what a new app has, and it is
 # enough: the menu item works from the first run rather than being a promise.

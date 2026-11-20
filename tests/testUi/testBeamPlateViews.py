@@ -111,18 +111,18 @@ def testConfigurationHasSchematicThenParameters(qtbot, viewClass, name: str, pag
     assert configuration.tabs.styleSheet() == view.tabs.styleSheet()
 
 
-def testPlateConfigurationShowsItsTabsAndEachSaysItIsEmpty(qtbot) -> None:
-    """The beam's two have content; see testBeamSchematicView and testBeamParametersView."""
-    name = "plate"
+def testPlateParametersSaysItIsEmpty(qtbot) -> None:
+    """The schematics have their figures (testBeamSchematicView, testPlateSchematicView)
+    and the beam has its parameters; the plate's parameters are still to come."""
     view = PlateView()
     qtbot.addWidget(view)
     view.show()
     configuration = view.configurationView
+    page = configuration.parametersView
 
     assert configuration.tabs.isVisible()
     assert not configuration.emptyLabel.isVisible()
-    for page in (configuration.schematicView, configuration.parametersView):
-        configuration.tabs.setCurrentWidget(page)
-        assert page.pageTitles() == []
-        assert page.emptyLabel.isVisible()
-        assert name in page.emptyLabel.text().lower()
+    configuration.tabs.setCurrentWidget(page)
+    assert page.pageTitles() == []
+    assert page.emptyLabel.isVisible()
+    assert "plate" in page.emptyLabel.text().lower()
