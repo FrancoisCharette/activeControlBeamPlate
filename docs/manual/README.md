@@ -116,6 +116,35 @@ do not describe a beam that can be built - a transducer that runs past an end of
 length, thickness or density of zero, a permittivity of zero - a line in red under the inputs says what is wrong, until it is
 fixed.
 
+## Driving the beam
+
+**Beam > Actuation** says how the actuator on the Parameters tab is driven - chapter 2 of the
+thesis. The actuator itself, its size, place and material, stays on Configuration > Parameters.
+
+**Excitation**:
+
+| Choice | What drives the beam |
+|--------|----------------------|
+| Asymmetric | The one actuator of Figure 2.1, on the upper surface. It moves the beam axially and transversely at once. Table 2.2's beam was driven this way |
+| Symmetric, Pure Bending | A second actuator, identical to the first, facing it on the lower surface, driven 180° out of phase: the beam only bends |
+| Symmetric, Pure Extension | The same pair driven in phase: the beam only stretches and shrinks |
+
+**Applied Voltage**: the amplitude, in volts, and phase, in degrees, on the upper actuator. In a
+symmetric excitation the lower one gets the same amplitude, at that phase plus 180° for pure
+bending or the same phase for pure extension. It starts at 1 V and 0°, the voltage of the
+thesis's simulations; its experiments drove the actuator with up to about 60 V.
+
+**Frequency Band**: the start, end and step, in Hz, of the frequencies the response is worked
+out at. It starts at 1 to 3200 Hz in 1 Hz steps - the band of chapter 2's figures; 0 Hz is left
+out because a beam with free ends has no static response to work out. The line under it says
+how many frequencies that is.
+
+A line in red says what cannot be used: no voltage, a band that holds no frequency or millions
+of them, and a symmetric excitation whose lower actuator would sit on the sensor. Table 2.2's
+sensor covers the whole lower surface, so with it only the asymmetric excitation fits: shorten
+or move the sensor on the Parameters tab to make room. **Restore Default Values** puts the
+starting values back. As everywhere, what you choose is kept for the next time.
+
 ## The plate
 
 **Plate > Configuration > Schematic** shows Figure 5.1 of the thesis: a rectangular plate held

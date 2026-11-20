@@ -59,14 +59,17 @@ def testItsTabControlIsHighlighted(qtbot, viewClass, name: str, pageClasses) -> 
 
 
 @pytest.mark.parametrize(("viewClass", "name", "pageClasses"), structures)
-def testActuationAndSensingSayTheyAreEmptyAndCanTakeChildTabs(
+def testThePagesStillToComeSayTheyAreEmptyAndCanTakeChildTabs(
     qtbot, viewClass, name: str, pageClasses
 ) -> None:
+    """Sensing under both; Actuation under Plate - the beam's has its own tests."""
     view = viewClass()
     qtbot.addWidget(view)
     view.show()
 
-    for page in (view.actuationView, view.sensingView):
+    pending = [view.sensingView] if viewClass is BeamView else [view.actuationView,
+                                                                  view.sensingView]
+    for page in pending:
         view.tabs.setCurrentWidget(page)
         assert isinstance(page, TabbedView)
         assert page.pageTitles() == []

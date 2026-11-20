@@ -56,18 +56,18 @@ def testAChildTabAddedUnderASecondLevelTabIsHighlighted(qtbot) -> None:
     view = StructureTabsView()
     qtbot.addWidget(view)
     view.show()
-    actuation = view.beamView.actuationView
-    view.beamView.tabs.setCurrentWidget(actuation)
+    sensing = view.beamView.sensingView
+    view.beamView.tabs.setCurrentWidget(sensing)
 
-    actuation.addPage("Sample Actuator", QWidget())
+    sensing.addPage("Sample Sensor", QWidget())
 
-    assert actuation.pageTitles() == ["Sample Actuator"]
-    assert actuation.tabs.isVisible()
-    assert not actuation.emptyLabel.isVisible()
-    assert isinstance(actuation.tabs, FullWidthTabWidget)
-    assert actuation.tabs.styleSheet() == view.tabs.styleSheet()
+    assert sensing.pageTitles() == ["Sample Sensor"]
+    assert sensing.tabs.isVisible()
+    assert not sensing.emptyLabel.isVisible()
+    assert isinstance(sensing.tabs, FullWidthTabWidget)
+    assert sensing.tabs.styleSheet() == view.tabs.styleSheet()
     # The same tab under the other structure is untouched.
-    assert view.plateView.actuationView.pageTitles() == []
+    assert view.plateView.sensingView.pageTitles() == []
 
 
 def testTheSwitchRunsEdgeToEdgeAndChildControlsAreSetIn(qtbot) -> None:

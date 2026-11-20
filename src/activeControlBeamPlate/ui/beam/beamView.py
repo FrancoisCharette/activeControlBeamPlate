@@ -24,3 +24,8 @@ class BeamView(TabbedView):
         self.addPage("Configuration", self.configurationView)
         self.addPage("Actuation", self.actuationView)
         self.addPage("Sensing", self.sensingView)
+        # Actuation checks a symmetric excitation's lower actuator against the
+        # sensor, so it follows the dimensions typed on Configuration > Parameters.
+        parameters = self.configurationView.parametersView
+        self.actuationView.setGeometry(parameters.geometry())
+        parameters.geometryChanged.connect(self.actuationView.setGeometry)

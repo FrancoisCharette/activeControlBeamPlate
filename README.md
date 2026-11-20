@@ -46,7 +46,14 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
   D/L across that edge, within 0.1 % of ideal edges on the first six modes - and a
   **Damping** button, as on the beam. Kept as typed, checked (an actuator past an edge, two overlapping), and
   restorable to Table 5.1.
-- Actuation and Sensing, under both structures, have no content yet, and each says so.
+- **Beam > Actuation** is how the actuator is driven (chapter 2): the **Excitation** -
+  Asymmetric, the one actuator of Figure 2.1, or Symmetric with a second identical actuator
+  facing it on the lower surface, for Pure Bending (180°) or Pure Extension (0°); the **Applied
+  Voltage**, amplitude and phase, 1 V at 0° by default as in the thesis's simulations; and the
+  **Frequency Band** the response is worked out over, 1 to 3200 Hz in 1 Hz steps by default,
+  the band of chapter 2's figures. It flags a symmetric excitation whose lower actuator would
+  sit on the sensor - which Table 2.2's, covering the whole lower surface, always does.
+- Sensing under both structures, and Plate > Actuation, have no content yet, and each says so.
 - The app reopens as it was left: the window's position and size (maximised included), and the
   open tab at every level - each structure keeps its own sub-tab. See *Where settings live*.
 - Every tab control, at any depth, is highlighted the way 26wagerBook's are: the tabs share the
@@ -108,6 +115,7 @@ runs without windows, and skips the few tests that need a real light / dark swit
 | `appearance/theme` | The Help > Theme choice | When it is chosen |
 | `window/geometry` | The window's position and size, as Qt's geometry blob | When the window closes |
 | `beam/geometry/...` | The Beam > Parameters dimensions, in mm, one key per field of `BeamGeometry` | When one is changed |
+| `beam/actuation/<field>` | The Beam > Actuation values: `excitation` by name, the voltage and the band as numbers | When one is changed |
 | `beam/materials/<field>` | The Table 2.2 materials, one key per number of `BeamMaterials` (`beamYoungsModulus/imag`) | When one is changed |
 | `beam/supports/<spring>/real`, `.../imag` | The six end springs, real and imaginary parts, one pair per field of `BeamSupports` | When one is changed |
 | `plate/<path>` | The Plate > Parameters values, one key per number of `PlateConfiguration` by its path (`plate/primaryActuator/positionX`, `plate/supports/edgeXNegative/transverse/real`) | When one is changed |
@@ -131,7 +139,7 @@ MainWindow
     │   ├── BeamConfigurationView  Parameters | Schematic
     │   │   ├── BeamSchematicView  Figure 2.1
     │   │   └── BeamParametersView the dimensions of Figure 2.1
-    │   ├── BeamActuationView      empty for now
+    │   ├── BeamActuationView      excitation, voltage, frequency band
     │   └── BeamSensingView        empty for now
     └── PlateView                  Configuration | Actuation | Sensing
         ├── PlateConfigurationView Parameters | Schematic
@@ -152,22 +160,22 @@ shows a line saying so until it gets content.
    `TabbedView`.
 
    ```python
-   # src/activeControlBeamPlate/ui/beam/exampleActuatorView.py
+   # src/activeControlBeamPlate/ui/beam/exampleSensorView.py
    from activeControlBeamPlate.ui.widgets.reportingView import ReportingView
 
 
-   class ExampleActuatorView(ReportingView):
+   class ExampleSensorView(ReportingView):
        def __init__(self, parent=None):
            super().__init__(parent)
            ...  # widgets and layout only; calculations go in services/
    ```
 
 2. **Add it** in the `__init__` of the view it sits under, one line per tab, in the order the
-   tabs should appear. For a third-level tab under Beam > Actuation:
+   tabs should appear. For a third-level tab under Beam > Sensing:
 
    ```python
-   # src/activeControlBeamPlate/ui/beam/beamActuationView.py
-   self.addPage("Example Actuator", ExampleActuatorView())
+   # src/activeControlBeamPlate/ui/beam/beamSensingView.py
+   self.addPage("Example Sensor", ExampleSensorView())
    ```
 
    A tab whose content is fields or a drawing rather than more tabs, such as Beam >
@@ -223,6 +231,7 @@ A test fails if the drawing was changed and the icon not redrawn.
 | | `src/activeControlBeamPlate/ui/widgets/tabbedView.py` | `TabbedView`, the building block described above |
 | | `src/activeControlBeamPlate/ui/widgets/fullWidthTabWidget.py` | The highlighted tab control every level uses |
 | | `src/activeControlBeamPlate/ui/widgets/tabStyling.py`, `ui/tabTheme.py` | How the open tab is marked, and the accent colours |
+| | `src/activeControlBeamPlate/ui/beam/beamActuationView.py` | Beam > Actuation |
 | | `src/activeControlBeamPlate/ui/beam/beamMaterialsBox.py` | The Materials group of Beam > Parameters |
 | | `src/activeControlBeamPlate/ui/beam/beamSupportsBox.py` | The End Supports group of Beam > Parameters |
 | | `src/activeControlBeamPlate/ui/widgets/scientificSpinBox.py` | A number box that reads and writes `1e12`, stepping by tens |
@@ -241,6 +250,8 @@ A test fails if the drawing was changed and the icon not redrawn.
 | | `src/activeControlBeamPlate/services/springDamping.py` | Loss-factor damping of support springs, shared by beam ends and plate edges |
 | | `src/activeControlBeamPlate/services/plateEdgeConditions.py` | The recommended plate edge springs for Free / Simply Supported / Clamped; the Ritz check behind 10<sup>6</sup> is in its docstring |
 | | `src/activeControlBeamPlate/services/beamEndConditions.py` | The recommended end springs for Free / Pinned / Roller / Clamped, and loss-factor damping; why 10<sup>6</sup> is in its docstring |
+| | `src/activeControlBeamPlate/models/beamActuation.py` | `BeamActuation` and `Excitation`: how the beam is driven |
+| | `src/activeControlBeamPlate/services/beamActuationService.py` | Checks the actuation (band, voltage, a symmetric actuator on the sensor), and saves and loads it |
 | | `src/activeControlBeamPlate/services/beamMaterialsService.py` | Checks the beam materials, and saves and loads them |
 | | `src/activeControlBeamPlate/services/beamSupportsService.py` | Checks the end springs, and saves and loads them |
 | | `src/activeControlBeamPlate/models/plateConfiguration.py` | `PlateConfiguration`: the plate, its two actuators and its edge springs, defaulting to Table 5.1 |
