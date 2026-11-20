@@ -234,9 +234,15 @@ def testTheStubManualShipsWithTheTemplate() -> None:
     assert appConfig.manualPath.read_text(encoding="utf-8").strip()
 
 
-def testNothingIsPublishedUntilTheAuthorSaysSo() -> None:
-    """A new app has no manual online, so the default must not pretend it has."""
-    assert appConfig.manualUrl == ""
+def testTheManualIsPublishedFromThisRepo() -> None:
+    """The same file as the local copy, on the app's own public GitHub repo."""
+    assert appConfig.manualUrl == (
+        "https://github.com/FrancoisCharette/activeControlBeamPlate"
+        "/blob/main/docs/manual/README.md"
+    )
+    assert appConfig.manualUrl.endswith(
+        appConfig.manualPath.relative_to(appConfig.projectRoot).as_posix()
+    )
 
 
 def testTheLocalCopyIsOpenedWhenNothingIsPublished(qtbot, monkeypatch) -> None:
@@ -279,12 +285,15 @@ def testAMissingManualLeavesTheReaderAnAddress(qtbot, monkeypatch, tmp_path) -> 
 
     mainWindow.openManual(publishedIsReachable=False)
 
+    # Both addresses: the published one and the local one, so either can be copied.
     assert shown and "gone.md" in shown[0]
-    assert "nothing published" in shown[0]
+    assert appConfig.manualUrl in shown[0]
 
 
 def testTheCheckRunsOffTheInterfaceThread(qtbot, monkeypatch) -> None:
     """A network probe can hang until its timeout; the window must not."""
+    # Kept off the network: the thread is what is tested, not GitHub.
+    monkeypatch.setattr(appConfig, "manualUrl", "")
     mainWindow = MainWindow()
     qtbot.addWidget(mainWindow)
     openedUrls(monkeypatch)

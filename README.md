@@ -18,10 +18,17 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
     L<sub>x</sub><sup>c</sup>; positions x<sub>a</sub>, x<sub>c</sub>; the shared width
     L<sub>y</sub>; thicknesses L<sub>z</sub><sup>pt</sup>, L<sub>z</sub><sup>a</sup>,
     L<sub>z</sub><sup>c</sup>. They start at Table 2.2;
+  - Table 2.2's material rows, in a Materials grid with a column per part: density, complex
+    Young's modulus, the sensor's permittivity ξ, and d<sub>zx</sub>, e<sub>zx</sub> for the
+    actuator and sensor;
   - the six end springs K<sub>V</sub>, K<sub>H</sub>, K<sub>T</sub> at each end (equation 2.25),
     as complex stiffnesses: real part + j × imaginary part (the damping), typed in scientific
     notation if wished (`1e12`). They start at 0, a free-free beam, as in chapter 2's
-    experiments.
+    experiments. Each end has a **Condition** button (Free, Pinned, Roller, Clamped) that fills
+    the real parts with this app's recommended stiffnesses - 10<sup>6</sup> times the beam's
+    own EI/L³, EA/L or EI/L for each held motion, within 0.05 % of an ideal support on the
+    first three modes - and a **Damping** button (0 to 10 %) that sets the imaginary parts to
+    a loss factor times the real parts.
 
   Everything is kept as it is typed, and a line under the inputs says when the values do not
   describe a beam that can be built.
@@ -45,7 +52,11 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
   manual on F1, the About box, and failures shown in a dialog rather than on the status bar.
   File > New / Open / Save are still the template's placeholders.
 
-The user manual is in [`docs/manual/README.md`](docs/manual/README.md).
+The user manual is in [`docs/manual/README.md`](docs/manual/README.md). **Help > User Manual**
+(F1) opens it on GitHub, where it renders properly; `manualUrl` in `appConfig.py` says where. The
+app first checks that the page answers, off the interface thread, and opens the copy in the
+checkout instead when there is no network. The GitHub page shows what is pushed, so push a
+manual change for the menu to show it.
 
 ## One-time setup
 
@@ -94,6 +105,7 @@ runs without windows, and skips the few tests that need a real light / dark swit
 | `appearance/theme` | The Help > Theme choice | When it is chosen |
 | `window/geometry` | The window's position and size, as Qt's geometry blob | When the window closes |
 | `beam/geometry/...` | The Beam > Parameters dimensions, in mm, one key per field of `BeamGeometry` | When one is changed |
+| `beam/materials/<field>` | The Table 2.2 materials, one key per number of `BeamMaterials` (`beamYoungsModulus/imag`) | When one is changed |
 | `beam/supports/<spring>/real`, `.../imag` | The six end springs, real and imaginary parts, one pair per field of `BeamSupports` | When one is changed |
 | `plate/<path>` | The Plate > Parameters values, one key per number of `PlateConfiguration` by its path (`plate/primaryActuator/positionX`, `plate/supports/edgeXNegative/transverse/real`) | When one is changed |
 | `window/openTabs` | The open tab of every tab control, as JSON: `{"": "Plate", "Beam": "Actuation", ...}` | When the window closes |
@@ -174,6 +186,27 @@ That is the whole step. Nothing is registered anywhere else, and the main window
 - **The empty state.** A view with no pages shows its `emptyText` instead of an empty frame, and
   swaps to the tabs when the first page is added.
 
+## App icon
+
+The icon is the thesis in one picture: a beam bent in its first mode on two supports, with an
+amber piezoceramic actuator at its middle, and behind it, faint, the much larger bending of the
+same beam before control. It sits on a deep blue-teal tile, so it is not mistaken for the group's
+indigo apps. It is drawn in code, the way 26wagerBook's is: `tools/makeIcons.py` paints it
+separately at each size from 16 to 256 px - small sizes drop the faint band and the supports
+rather than shrinking them to mush - and packs them into
+`src/activeControlBeamPlate/resources/activeControlBeamPlate.ico`, with a 1024 px PNG beside it.
+
+Startup sets it on every window and gives the app its own Windows taskbar ID,
+`Charette-AI-Group.ActiveControlBeamPlate`, so a window started by `pythonw.exe` (as
+`runApp.cmd` does) is not filed under Python with Python's icon. To redraw it after changing the
+design:
+
+```powershell
+python tools/makeIcons.py
+```
+
+A test fails if the drawing was changed and the icon not redrawn.
+
 ## Structure
 
 | Layer | Folder | Purpose |
@@ -187,18 +220,23 @@ That is the whole step. Nothing is registered anywhere else, and the main window
 | | `src/activeControlBeamPlate/ui/widgets/tabbedView.py` | `TabbedView`, the building block described above |
 | | `src/activeControlBeamPlate/ui/widgets/fullWidthTabWidget.py` | The highlighted tab control every level uses |
 | | `src/activeControlBeamPlate/ui/widgets/tabStyling.py`, `ui/tabTheme.py` | How the open tab is marked, and the accent colours |
+| | `src/activeControlBeamPlate/ui/beam/beamMaterialsBox.py` | The Materials group of Beam > Parameters |
 | | `src/activeControlBeamPlate/ui/beam/beamSupportsBox.py` | The End Supports group of Beam > Parameters |
 | | `src/activeControlBeamPlate/ui/widgets/scientificSpinBox.py` | A number box that reads and writes `1e12`, stepping by tens |
 | | `src/activeControlBeamPlate/ui/widgets/figureView.py` | A page showing one thesis figure with its caption and a key to its French labels; both Schematic tabs are one |
 | | `src/activeControlBeamPlate/ui/widgets/scaledImageView.py` | An image scaled to fit its page, for the thesis figures; line art can follow the theme |
 | | `src/activeControlBeamPlate/resources/beamSchematic.png` | Figure 2.1, cropped from page 21 of `PhD thesis.pdf` at 600 dpi |
 | | `src/activeControlBeamPlate/resources/plateSchematic.png` | Figure 5.1, cropped from page 110 the same way |
+| | `src/activeControlBeamPlate/resources/activeControlBeamPlate.ico`, `.png` | The app icon, drawn by `tools/makeIcons.py` |
 | | `src/activeControlBeamPlate/ui/plate/plateParametersView.py`, `plateEdgesBox.py` | Plate > Parameters: Table 5.1 and the Edge Supports group |
 | | `src/activeControlBeamPlate/ui/widgets/reportingView.py` | Base for a page that reports status and failures |
 | | `src/activeControlBeamPlate/ui/dialogs/` | About and error dialogs |
 | Models | `src/activeControlBeamPlate/models/beamGeometry.py` | `BeamGeometry`: the dimensions of Figure 2.1, defaulting to Table 2.2 |
+| | `src/activeControlBeamPlate/models/beamMaterials.py` | `BeamMaterials`: Table 2.2's densities, Young's moduli and piezoelectric constants |
 | | `src/activeControlBeamPlate/models/beamSupports.py` | `BeamSupports`: the six complex end springs, defaulting to free ends |
 | Services | `src/activeControlBeamPlate/services/beamGeometryService.py` | Checks the beam dimensions, and saves and loads them |
+| | `src/activeControlBeamPlate/services/beamEndConditions.py` | The recommended end springs for Free / Pinned / Roller / Clamped, and loss-factor damping; why 10<sup>6</sup> is in its docstring |
+| | `src/activeControlBeamPlate/services/beamMaterialsService.py` | Checks the beam materials, and saves and loads them |
 | | `src/activeControlBeamPlate/services/beamSupportsService.py` | Checks the end springs, and saves and loads them |
 | | `src/activeControlBeamPlate/models/plateConfiguration.py` | `PlateConfiguration`: the plate, its two actuators and its edge springs, defaulting to Table 5.1 |
 | | `src/activeControlBeamPlate/services/plateConfigurationService.py` | Checks the plate configuration, and saves and loads it |

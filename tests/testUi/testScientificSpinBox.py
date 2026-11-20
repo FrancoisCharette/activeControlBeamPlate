@@ -67,3 +67,12 @@ def testStepsStopAtTheMaximum(box) -> None:
     box.stepBy(5)
 
     assert box.value() == box.maximum()
+
+
+def testTheBoxIsWideEnoughForAnyValueItShows(box) -> None:
+    """Qt sizes a spin box for its minimum and maximum, here "0" and "1e+15"; in a narrow
+    column 1.00081e+06 lost its exponent and read as 1.00081."""
+    metrics = box.fontMetrics()
+
+    assert box.minimumSizeHint().width() > metrics.horizontalAdvance("-8.88888e-888")
+    assert box.sizeHint().width() >= box.minimumSizeHint().width()

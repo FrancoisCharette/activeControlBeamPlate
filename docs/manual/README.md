@@ -48,7 +48,23 @@ A position is measured along x from the centre of the beam, where the figure put
 and is negative towards the left end. The width and thicknesses are not drawn in the figure;
 the thesis gives them in the text beside it and in Table 2.2.
 
-Under the dimensions, **End Supports** holds the six springs that hold the ends of the beam
+Under the dimensions, **Materials** holds the rest of Table 2.2, with a column each for the
+beam, the actuator and the sensor:
+
+| Row | Unit | For |
+|-----|------|-----|
+| Density ρ | kg/m³ | All three |
+| Young's modulus Y, real and imaginary part | N/m² | All three |
+| Permittivity ξ | F/m | The sensor |
+| d<sub>zx</sub> | m/V | The actuator and the sensor |
+| e<sub>zx</sub> | N/(V·m) | The actuator and the sensor |
+
+A dash marks what a part does not have: the beam is not piezoelectric. Young's modulus is
+complex, its imaginary part being the damping, as Table 2.2 writes it in pairs. Small and large
+values (190e-12, 71e9) can be typed in that form. e<sub>zx</sub> is close to d<sub>zx</sub> × Y
+(equation 2.24); the two are kept as typed, not worked out from each other.
+
+Under the materials, **End Supports** holds the six springs that hold the ends of the beam
 (equation 2.25 of the thesis). At each end:
 
 | Spring | Resists | Unit |
@@ -62,13 +78,42 @@ its imaginary part, which is the damping. 0 leaves the end free to move that way
 large value holds it. These boxes take numbers like `1e12` or `2.5E6`, and their arrows multiply
 or divide by ten. A stiffness or damping cannot be negative.
 
+Each end has two buttons above its springs, so you need not work stiffnesses out by hand:
+
+- **Condition** fills the end's real parts for a kind of support:
+
+  | Condition | Transverse K<sub>V</sub> | Axial K<sub>H</sub> | Rotational K<sub>T</sub> |
+  |-----------|------|------|------|
+  | Free | 0 | 0 | 0 |
+  | Pinned | held | held | 0 |
+  | Roller | held | 0 | 0 |
+  | Clamped | held | held | held |
+
+  Roller is the thesis's simply supported beam of Table 2.1: held up and down, free to slide
+  and to turn. A held spring is a million times stiffer than the beam itself is for that
+  motion (EI/L³, EA/L or EI/L, from the beam's length, width, thickness and Young's modulus as
+  they are on this page when you choose). A check on the beam of Table 2.2 puts its first
+  three natural frequencies within 0.05 % of an ideal support at that level. These values are
+  this app's recommendation: the thesis does not give any.
+- **Damping** sets the end's imaginary parts to a loss factor η times the real parts, from 0 %
+  to 10 % - the way Table 2.2 writes damping, where the beam's own is 0.5 %. A free spring
+  stays 0. Choosing a new Condition keeps the damping you chose.
+
+The buttons always say what the end's values are now. **Condition** names a support only while
+the real parts are exactly the values it put there; change any of K<sub>V</sub>, K<sub>H</sub>
+or K<sub>T</sub> by hand and it says Custom. **Damping** likewise names a level only while every
+imaginary part is that level times its real part. Because the recommended stiffnesses are
+scaled to the beam, changing the beam's length, width, thickness or Young's modulus also turns
+a chosen condition to Custom: choose it again to fit the springs to the new beam.
+
 The first time, the inputs hold the configuration of Table 2.2 (a 295 mm beam, a 25.38 mm
 actuator at 131 mm, a sensor covering the whole beam) with every spring at 0: a free-free beam,
-as in the thesis's experiments. **Restore Table 2.2 Values** puts all of that back.
+as in the thesis's experiments. **Restore Table 2.2 Values** puts all of that back, materials
+included.
 
 What you type is kept straight away and is there the next time the app opens. If the values
 do not describe a beam that can be built - a transducer that runs past an end of the beam, or a
-length or thickness of zero - a line in red under the inputs says what is wrong, until it is
+length, thickness or density of zero, a permittivity of zero - a line in red under the inputs says what is wrong, until it is
 fixed.
 
 ## The plate

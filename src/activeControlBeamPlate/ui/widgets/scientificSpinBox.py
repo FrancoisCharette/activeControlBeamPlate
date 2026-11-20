@@ -12,12 +12,15 @@ from __future__ import annotations
 import math
 import re
 
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QValidator
 from PySide6.QtWidgets import QDoubleSpinBox, QWidget
 
 significantDigits = 6
 # What is on the way to a number while it is typed: "", "-", "1e", "2.5E-".
 unfinished = re.compile(r"[+-]?(\d*\.?\d*([eE][+-]?)?)?")
+# The longest text the box can show: a sign, six digits and a three-digit exponent.
+widestText = "-8.88888e-888"
 
 
 class ScientificSpinBox(QDoubleSpinBox):
@@ -26,6 +29,23 @@ class ScientificSpinBox(QDoubleSpinBox):
         # Qt rounds every value to this many decimals; this keeps them all.
         self.setDecimals(323)
         self.setRange(0.0, 1e15)
+
+    def widened(self, hint: QSize) -> QSize:
+        """Qt sizes the box for its minimum and maximum, 0 and 1e+15, which are short;
+        1.00081e+06 then lost its exponent in a narrow column. Room for the widest."""
+        metrics = self.fontMetrics()
+        shown = max(
+            metrics.horizontalAdvance(self.textFromValue(value))
+            for value in (self.minimum(), self.maximum())
+        )
+        widest = metrics.horizontalAdvance(widestText)
+        return QSize(hint.width() + max(0, widest - shown), hint.height())
+
+    def sizeHint(self) -> QSize:
+        return self.widened(super().sizeHint())
+
+    def minimumSizeHint(self) -> QSize:
+        return self.widened(super().minimumSizeHint())
 
     def stripAffixes(self, text: str) -> str:
         body = text
