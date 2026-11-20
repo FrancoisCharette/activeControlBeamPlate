@@ -136,3 +136,64 @@ def testAPlainWidgetCanBeAPage(qtbot) -> None:
     view.addPage("Plain", QWidget())
 
     assert view.pageTitles() == ["Plain"]
+
+
+def twoBranches(qtbot) -> TabbedView:
+    """Beam and Plate, each with three tabs of its own, like the app."""
+    root = TabbedView()
+    qtbot.addWidget(root)
+    for structure in ("Beam", "Plate"):
+        branch = TabbedView()
+        for part in ("Configuration", "Actuation", "Sensing"):
+            branch.addPage(part, TabbedView())
+        root.addPage(structure, branch)
+    return root
+
+
+def branch(view: TabbedView, title: str) -> TabbedView:
+    return dict(view.nestedViews())[title]
+
+
+def testOpenTabsNamesTheOpenTabAtEveryLevel(qtbot) -> None:
+    """Every branch, not only the one on screen, so each keeps its own choice."""
+    root = twoBranches(qtbot)
+    root.tabs.setCurrentIndex(1)
+    branch(root, "Beam").tabs.setCurrentIndex(1)
+    branch(root, "Plate").tabs.setCurrentIndex(2)
+
+    # Empty third-level views have no tabs, so they have nothing to name.
+    assert root.openTabs() == {"": "Plate", "Beam": "Actuation", "Plate": "Sensing"}
+
+
+def testRestoringOpensTheSameTabsInAFreshTree(qtbot) -> None:
+    first = twoBranches(qtbot)
+    first.tabs.setCurrentIndex(1)
+    branch(first, "Beam").tabs.setCurrentIndex(2)
+    branch(first, "Plate").tabs.setCurrentIndex(1)
+
+    second = twoBranches(qtbot)
+    second.restoreOpenTabs(first.openTabs())
+
+    assert second.openTabs() == first.openTabs()
+    assert second.tabs.currentWidget() is branch(second, "Plate")
+
+
+def testATitleThatNoLongerExistsLeavesThatLevelAsItIs(qtbot) -> None:
+    """A tab renamed or removed since the last session must not break the rest."""
+    root = twoBranches(qtbot)
+
+    root.restoreOpenTabs({"": "Shell", "Beam": "Control Law", "Plate": "Sensing"})
+
+    assert root.openTabs() == {"": "Beam", "Beam": "Configuration", "Plate": "Sensing"}
+
+
+def testDeeperLevelsAreRestoredToo(qtbot) -> None:
+    root = twoBranches(qtbot)
+    actuation = branch(branch(root, "Beam"), "Actuation")
+    actuation.addPage("One", QWidget())
+    actuation.addPage("Two", QWidget())
+
+    root.restoreOpenTabs({"Beam/Actuation": "Two"})
+
+    assert actuation.tabs.currentIndex() == 1
+    assert root.openTabs()["Beam/Actuation"] == "Two"

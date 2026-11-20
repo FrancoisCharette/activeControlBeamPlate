@@ -25,7 +25,7 @@ def testItOpensOnBeam(qtbot) -> None:
     assert view.tabs.currentWidget() is view.beamView
 
 
-def testEachStructureIsAViewReadyForChildTabs(qtbot) -> None:
+def testEachStructureIsATabbedView(qtbot) -> None:
     view = StructureTabsView()
     qtbot.addWidget(view)
 
@@ -37,33 +37,37 @@ def testEachStructureIsAViewReadyForChildTabs(qtbot) -> None:
         assert isinstance(structure, TabbedView)
 
 
-def testAStructureWithNoConfigurationSaysSo(qtbot) -> None:
+def testBothStructuresShowTheirSecondLevelTabs(qtbot) -> None:
     view = StructureTabsView()
     qtbot.addWidget(view)
     view.show()
 
-    assert view.beamView.emptyLabel.isVisible()
-    assert "beam" in view.beamView.emptyLabel.text().lower()
-    assert "plate" in view.plateView.emptyLabel.text().lower()
-    assert view.beamView.pageTitles() == []
-    assert view.plateView.pageTitles() == []
+    assert view.beamView.tabs.isVisible()
+    assert not view.beamView.emptyLabel.isVisible()
+
+    view.tabs.setCurrentWidget(view.plateView)
+
+    assert view.plateView.tabs.isVisible()
+    assert not view.plateView.emptyLabel.isVisible()
 
 
-def testAConfigurationAddedToAStructureBecomesAHighlightedChildTab(qtbot) -> None:
+def testAChildTabAddedUnderASecondLevelTabIsHighlighted(qtbot) -> None:
     """The next step of the app, done the way README.md describes it."""
     view = StructureTabsView()
     qtbot.addWidget(view)
     view.show()
+    actuation = view.beamView.actuationView
+    view.beamView.tabs.setCurrentWidget(actuation)
 
-    view.beamView.addPage("Sample Configuration", QWidget())
+    actuation.addPage("Sample Actuator", QWidget())
 
-    assert view.beamView.pageTitles() == ["Sample Configuration"]
-    assert view.beamView.tabs.isVisible()
-    assert not view.beamView.emptyLabel.isVisible()
-    assert isinstance(view.beamView.tabs, FullWidthTabWidget)
-    assert view.beamView.tabs.styleSheet() == view.tabs.styleSheet()
-    # The other structure is untouched.
-    assert view.plateView.pageTitles() == []
+    assert actuation.pageTitles() == ["Sample Actuator"]
+    assert actuation.tabs.isVisible()
+    assert not actuation.emptyLabel.isVisible()
+    assert isinstance(actuation.tabs, FullWidthTabWidget)
+    assert actuation.tabs.styleSheet() == view.tabs.styleSheet()
+    # The same tab under the other structure is untouched.
+    assert view.plateView.actuationView.pageTitles() == []
 
 
 def testTheSwitchRunsEdgeToEdgeAndChildControlsAreSetIn(qtbot) -> None:

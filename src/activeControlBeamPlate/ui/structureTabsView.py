@@ -2,7 +2,7 @@
 
 The most basic parameter of the thesis, so it is chosen first and everything
 else sits under one of its two tabs. Each tab is a view of its own - ui/beam
-and ui/plate - that takes child tabs as its configurations are added.
+and ui/plate - holding the second level: Configuration, Actuation, Sensing.
 """
 
 from __future__ import annotations

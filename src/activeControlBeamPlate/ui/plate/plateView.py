@@ -1,19 +1,26 @@
-"""The Plate tab.
+"""The Plate tab: a second-level tab control with the three parts of a plate study.
 
-Each plate configuration becomes a child tab here, added in __init__ with
-addPage; README.md has the steps. None has been added yet, so the page says
-so instead of showing an empty tab control.
+Configuration describes the plate itself, in a Schematic tab and a Parameters
+tab; Actuation is how it is driven, and Sensing how its response is
+measured. Each is a view of its own in this folder.
 """
 
 from __future__ import annotations
 
 from PySide6.QtWidgets import QWidget
 
+from activeControlBeamPlate.ui.plate.plateActuationView import PlateActuationView
+from activeControlBeamPlate.ui.plate.plateConfigurationView import PlateConfigurationView
+from activeControlBeamPlate.ui.plate.plateSensingView import PlateSensingView
 from activeControlBeamPlate.ui.widgets.tabbedView import TabbedView
 
 
 class PlateView(TabbedView):
     def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(
-            emptyText="No plate configuration has been added yet.", parent=parent
-        )
+        super().__init__(parent=parent)
+        self.configurationView = PlateConfigurationView()
+        self.actuationView = PlateActuationView()
+        self.sensingView = PlateSensingView()
+        self.addPage("Configuration", self.configurationView)
+        self.addPage("Actuation", self.actuationView)
+        self.addPage("Sensing", self.sensingView)

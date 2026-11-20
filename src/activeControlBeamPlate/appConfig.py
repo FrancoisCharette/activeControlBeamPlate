@@ -26,6 +26,11 @@ donatePressedColour = "#d9991f"
 
 projectRoot = Path(__file__).resolve().parents[2]
 resourcesDir = Path(__file__).resolve().parent / "resources"
+# Figure 2.1 of the thesis, "Diagram of the system considered" (page 21): the
+# beam with its actuator and sensor. Rendered at 600 dpi from the drawing in
+# the original PDF, so it stays sharp at any window size. Its labels are the
+# original French ones.
+beamSchematicImage = resourcesDir / "beamSchematic.png"
 
 # Help > User Manual. The copy in the checkout is what a new app has, and it is
 # enough: the menu item works from the first run rather than being a promise.

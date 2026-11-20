@@ -15,7 +15,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QMainWindow, QMessageBox
 
 from activeControlBeamPlate import appConfig
-from activeControlBeamPlate.services import themeService
+from activeControlBeamPlate.services import themeService, windowStateService
 from activeControlBeamPlate.services.manualWorker import ManualWorker
 from activeControlBeamPlate.ui.dialogs.aboutDialog import showAbout
 from activeControlBeamPlate.ui.dialogs.errorDialog import showError
@@ -27,7 +27,11 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle(appConfig.windowTitle)
+        # The first-run size; after that, wherever it was when last closed.
         self.resize(appConfig.defaultWindowWidth, appConfig.defaultWindowHeight)
+        savedGeometry = windowStateService.loadGeometry()
+        if savedGeometry is not None:
+            self.restoreGeometry(savedGeometry)
         self.manualWorker: ManualWorker | None = None
 
         self.buildMenuBar()
@@ -37,6 +41,8 @@ class MainWindow(QMainWindow):
         self.structureTabs = StructureTabsView()
         self.connectView(self.structureTabs)
         self.setCentralWidget(self.structureTabs)
+        # The tabs that were open when it was last closed, at every level.
+        self.structureTabs.restoreOpenTabs(windowStateService.loadOpenTabs())
 
     def buildMenuBar(self) -> None:
         # Menus are kept as attributes: features can extend them later, and it
@@ -172,11 +178,17 @@ class MainWindow(QMainWindow):
         self.manualAction.setEnabled(True)
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        self.saveWindowState()
         if self.manualWorker is not None:
             # Short, but a thread running into interpreter shutdown turns a
             # clean exit into a crash.
             self.manualWorker.wait(int(appConfig.manualTimeoutSeconds * 1000) + 1000)
         super().closeEvent(event)
+
+    def saveWindowState(self) -> None:
+        """Where the window is and which tabs are open, for the next start."""
+        windowStateService.saveGeometry(self.saveGeometry())
+        windowStateService.saveOpenTabs(self.structureTabs.openTabs())
 
     def onHelpAbout(self) -> None:
         if showAbout(self):

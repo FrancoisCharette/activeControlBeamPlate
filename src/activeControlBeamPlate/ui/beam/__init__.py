@@ -1,1 +1,1 @@
-"""The Beam tab: the beam's configurations, one child tab each."""
+"""The Beam tab and its second level: Configuration, Actuation, Sensing."""

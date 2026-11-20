@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import pytest
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QKeySequence, QStandardItemModel
 from PySide6.QtWidgets import QTableView, QTabWidget
 
 from activeControlBeamPlate import appConfig
-from activeControlBeamPlate.services import themeService
+from activeControlBeamPlate.services import themeService, windowStateService
 from activeControlBeamPlate.ui import tabTheme
 from activeControlBeamPlate.ui.mainWindow import MainWindow
 from activeControlBeamPlate.ui.widgets.fullWidthTabWidget import FullWidthTabWidget
@@ -62,7 +62,7 @@ def testEveryTabControlInTheWindowIsHighlighted(qtbot) -> None:
     qtbot.addWidget(mainWindow)
     configuration = TabbedView()
     configuration.addPage("Variant", TabbedView())
-    mainWindow.structureTabs.beamView.addPage("Configuration", configuration)
+    mainWindow.structureTabs.beamView.addPage("Added Configuration", configuration)
 
     controls = mainWindow.findChildren(QTabWidget)
 
@@ -83,7 +83,7 @@ def testAPageDeepInTheTabsReachesTheWindow(qtbot, monkeypatch) -> None:
     configuration = TabbedView()
     page = ReportingView()
     configuration.addPage("Page", page)
-    mainWindow.structureTabs.plateView.addPage("Configuration", configuration)
+    mainWindow.structureTabs.plateView.addPage("Added Configuration", configuration)
 
     page.reportStatus("Solving...")
     assert mainWindow.statusBar().currentMessage() == "Solving..."
@@ -110,7 +110,7 @@ def testHelpThemeRepaintsEveryLevelOfTabs(qtbot, qapp, observableColorScheme) ->
     table.setModel(QStandardItemModel(2, 2))
     configuration = TabbedView()
     configuration.addPage("Table", table)
-    mainWindow.structureTabs.beamView.addPage("Configuration", configuration)
+    mainWindow.structureTabs.beamView.addPage("Added Configuration", configuration)
     mainWindow.show()
     qtbot.wait(200)
     controls = mainWindow.findChildren(FullWidthTabWidget)
@@ -298,3 +298,89 @@ def testTheCheckRunsOffTheInterfaceThread(qtbot, monkeypatch) -> None:
     mainWindow.manualWorker.wait(5000)
     qtbot.waitUntil(lambda: mainWindow.manualWorker is None, timeout=5000)
     assert mainWindow.manualAction.isEnabled()
+
+
+def testTheWindowSavesItsGeometryOnCloseAndRestoresItNextTime(qtbot, monkeypatch) -> None:
+    """Placing it is Qt's job - restoreGeometry fits it to the screens there are - so
+    this checks the hand-off."""
+    first = MainWindow()
+    qtbot.addWidget(first)
+    first.show()
+    first.close()
+    saved = windowStateService.loadGeometry()
+    assert saved is not None and not saved.isEmpty()
+    restored: list = []
+    monkeypatch.setattr(MainWindow, "restoreGeometry",
+                        lambda self, state: restored.append(state) or True)
+
+    second = MainWindow()
+    qtbot.addWidget(second)
+
+    assert restored == [saved]
+
+
+def testTheFirstRunUsesTheDefaultSizeAndTabs(qtbot, monkeypatch) -> None:
+    """Nothing saved yet, so nothing to restore: the configured size and the first tabs."""
+    restored: list = []
+    monkeypatch.setattr(MainWindow, "restoreGeometry",
+                        lambda self, state: restored.append(state) or True)
+
+    mainWindow = MainWindow()
+    qtbot.addWidget(mainWindow)
+
+    assert restored == []
+    assert mainWindow.size().toTuple() == (
+        appConfig.defaultWindowWidth, appConfig.defaultWindowHeight
+    )
+    assert mainWindow.structureTabs.openTabs() == {
+        "": "Beam",
+        "Beam": "Configuration", "Beam/Configuration": "Schematic",
+        "Plate": "Configuration", "Plate/Configuration": "Schematic",
+    }
+
+
+def testTheOpenTabsAreSavedOnCloseAndReopenedNextTime(qtbot) -> None:
+    first = MainWindow()
+    qtbot.addWidget(first)
+    first.show()
+    structure = first.structureTabs
+    structure.tabs.setCurrentWidget(structure.plateView)
+    structure.plateView.tabs.setCurrentWidget(structure.plateView.sensingView)
+    structure.beamView.tabs.setCurrentWidget(structure.beamView.actuationView)
+    beamConfiguration = structure.beamView.configurationView
+    beamConfiguration.tabs.setCurrentWidget(beamConfiguration.parametersView)
+    first.close()
+
+    second = MainWindow()
+    qtbot.addWidget(second)
+
+    reopened = second.structureTabs
+    assert reopened.tabs.currentWidget() is reopened.plateView
+    assert reopened.plateView.tabs.currentWidget() is reopened.plateView.sensingView
+    assert reopened.beamView.tabs.currentWidget() is reopened.beamView.actuationView
+    reopenedConfiguration = reopened.beamView.configurationView
+    assert reopenedConfiguration.tabs.currentWidget() is reopenedConfiguration.parametersView
+    plateConfiguration = reopened.plateView.configurationView
+    assert plateConfiguration.tabs.currentWidget() is plateConfiguration.schematicView
+
+
+def testAMovedWindowComesBackWhereItWas(qtbot, qapp) -> None:
+    """The real round trip, on the real platform; offscreen has no desktop to place it on."""
+    if qapp.platformName() == "offscreen":
+        pytest.skip("the offscreen platform has no real screens to place a window on")
+    first = MainWindow()
+    qtbot.addWidget(first)
+    first.show()
+    qtbot.waitExposed(first)
+    first.resize(700, 500)
+    first.move(first.pos() + QPoint(40, 30))
+    qtbot.wait(50)
+    geometry = first.geometry()
+    first.close()
+
+    second = MainWindow()
+    qtbot.addWidget(second)
+    second.show()
+    qtbot.waitExposed(second)
+
+    assert second.geometry() == geometry
