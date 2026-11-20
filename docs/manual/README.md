@@ -14,7 +14,7 @@ Under each structure is a second row of tabs, marked the same way:
 
 | Tab | What it is for |
 |-----|----------------|
-| **Configuration** | The structure itself, in two tabs of its own: **Schematic**, a drawing of it, and **Parameters**, its geometry, material and boundary conditions |
+| **Configuration** | The structure itself, in two tabs of its own: **Parameters**, its geometry, materials and boundary conditions, and **Schematic**, the thesis's drawing of it, to look up what a symbol means |
 | **Actuation** | How the structure is driven |
 | **Sensing** | How its response is measured |
 

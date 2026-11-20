@@ -1,4 +1,4 @@
-"""Tests for the tabs under Beam and Plate: Configuration (Schematic, Parameters),
+"""Tests for the tabs under Beam and Plate: Configuration (Parameters, Schematic),
 Actuation and Sensing."""
 
 from __future__ import annotations
@@ -91,21 +91,22 @@ def testReportsFromASecondLevelTabReachTheStructure(
 
 
 configurations = [
-    pytest.param(BeamView, "beam", (BeamSchematicView, BeamParametersView), id="beam"),
-    pytest.param(PlateView, "plate", (PlateSchematicView, PlateParametersView), id="plate"),
+    pytest.param(BeamView, "beam", (BeamParametersView, BeamSchematicView), id="beam"),
+    pytest.param(PlateView, "plate", (PlateParametersView, PlateSchematicView), id="plate"),
 ]
 
 
 @pytest.mark.parametrize(("viewClass", "name", "pageClasses"), configurations)
-def testConfigurationHasSchematicThenParameters(qtbot, viewClass, name: str, pageClasses) -> None:
+def testConfigurationHasParametersThenSchematic(qtbot, viewClass, name: str, pageClasses) -> None:
     view = viewClass()
     qtbot.addWidget(view)
     configuration = view.configurationView
 
-    assert configuration.pageTitles() == ["Schematic", "Parameters"]
-    pages = [configuration.schematicView, configuration.parametersView]
+    # Parameters first: it is where the work is; the figure is for reference.
+    assert configuration.pageTitles() == ["Parameters", "Schematic"]
+    pages = [configuration.parametersView, configuration.schematicView]
     assert [configuration.tabs.widget(index) for index in range(2)] == pages
     assert [type(page) for page in pages] == list(pageClasses)
-    assert configuration.tabs.currentWidget() is configuration.schematicView
+    assert configuration.tabs.currentWidget() is configuration.parametersView
     assert isinstance(configuration.tabs, FullWidthTabWidget)
     assert configuration.tabs.styleSheet() == view.tabs.styleSheet()

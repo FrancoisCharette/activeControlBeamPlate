@@ -40,7 +40,7 @@ def testItIsTheSchematicTabOfTheBeamConfiguration(qtbot) -> None:
     qtbot.addWidget(configuration)
 
     assert isinstance(configuration.schematicView, BeamSchematicView)
-    assert configuration.tabs.widget(0) is configuration.schematicView
+    assert configuration.tabs.widget(1) is configuration.schematicView
 
 
 def testAMissingImageSaysWhereItShouldBe(qtbot, monkeypatch, tmp_path) -> None:

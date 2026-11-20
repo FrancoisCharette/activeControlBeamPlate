@@ -343,8 +343,8 @@ def testTheFirstRunUsesTheDefaultSizeAndTabs(qtbot, monkeypatch) -> None:
     )
     assert mainWindow.structureTabs.openTabs() == {
         "": "Beam",
-        "Beam": "Configuration", "Beam/Configuration": "Schematic",
-        "Plate": "Configuration", "Plate/Configuration": "Schematic",
+        "Beam": "Configuration", "Beam/Configuration": "Parameters",
+        "Plate": "Configuration", "Plate/Configuration": "Parameters",
     }
 
 
@@ -357,7 +357,7 @@ def testTheOpenTabsAreSavedOnCloseAndReopenedNextTime(qtbot) -> None:
     structure.plateView.tabs.setCurrentWidget(structure.plateView.sensingView)
     structure.beamView.tabs.setCurrentWidget(structure.beamView.actuationView)
     beamConfiguration = structure.beamView.configurationView
-    beamConfiguration.tabs.setCurrentWidget(beamConfiguration.parametersView)
+    beamConfiguration.tabs.setCurrentWidget(beamConfiguration.schematicView)  # not the default
     first.close()
 
     second = MainWindow()
@@ -368,9 +368,9 @@ def testTheOpenTabsAreSavedOnCloseAndReopenedNextTime(qtbot) -> None:
     assert reopened.plateView.tabs.currentWidget() is reopened.plateView.sensingView
     assert reopened.beamView.tabs.currentWidget() is reopened.beamView.actuationView
     reopenedConfiguration = reopened.beamView.configurationView
-    assert reopenedConfiguration.tabs.currentWidget() is reopenedConfiguration.parametersView
+    assert reopenedConfiguration.tabs.currentWidget() is reopenedConfiguration.schematicView
     plateConfiguration = reopened.plateView.configurationView
-    assert plateConfiguration.tabs.currentWidget() is plateConfiguration.schematicView
+    assert plateConfiguration.tabs.currentWidget() is plateConfiguration.parametersView
 
 
 def testAMovedWindowComesBackWhereItWas(qtbot, qapp) -> None:

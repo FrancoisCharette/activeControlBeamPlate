@@ -135,7 +135,7 @@ def testItIsTheParametersTabOfTheBeamConfiguration(qtbot) -> None:
     qtbot.addWidget(configuration)
 
     assert isinstance(configuration.parametersView, BeamParametersView)
-    assert configuration.tabs.widget(1) is configuration.parametersView
+    assert configuration.tabs.widget(0) is configuration.parametersView
 
 
 def testAChangedSpringIsKeptAndAnnounced(qtbot) -> None:

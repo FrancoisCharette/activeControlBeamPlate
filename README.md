@@ -9,7 +9,7 @@ window is a tree of tabs, and each step adds a tab somewhere in that tree.
 
 - A **Beam** tab and a **Plate** tab — the most basic parameter, so it is chosen first.
 - Under each, a second row of tabs: **Configuration**, **Actuation** and **Sensing**.
-- Under each Configuration, a third row: **Schematic** and **Parameters**.
+- Under each Configuration, a third row: **Parameters**, then **Schematic** for reference.
 - **Beam > Configuration > Schematic** shows Figure 2.1 of the thesis, the beam with its
   actuator and sensor, rendered at 600 dpi from the drawing in the original PDF. It is drawn
   in the theme's text colour on the page's own colour, and follows Help > Theme.
@@ -128,13 +128,13 @@ be a `TabbedView` again, for as many levels as a configuration needs.
 MainWindow
 └── StructureTabsView              Beam | Plate
     ├── BeamView                   Configuration | Actuation | Sensing
-    │   ├── BeamConfigurationView  Schematic | Parameters
+    │   ├── BeamConfigurationView  Parameters | Schematic
     │   │   ├── BeamSchematicView  Figure 2.1
     │   │   └── BeamParametersView the dimensions of Figure 2.1
     │   ├── BeamActuationView      empty for now
     │   └── BeamSensingView        empty for now
     └── PlateView                  Configuration | Actuation | Sensing
-        ├── PlateConfigurationView Schematic | Parameters
+        ├── PlateConfigurationView Parameters | Schematic
         │   ├── PlateSchematicView  Figure 5.1
         │   └── PlateParametersView Table 5.1 and the edge springs
         ├── PlateActuationView     empty for now

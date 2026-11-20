@@ -1,6 +1,6 @@
 """The Plate tab: a second-level tab control with the three parts of a plate study.
 
-Configuration describes the plate itself, in a Schematic tab and a Parameters
+Configuration describes the plate itself, in a Parameters tab and a Schematic
 tab; Actuation is how it is driven, and Sensing how its response is
 measured. Each is a view of its own in this folder.
 """

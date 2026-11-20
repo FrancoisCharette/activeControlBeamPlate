@@ -1,7 +1,8 @@
 """The Configuration tab under Beam: the beam itself, in two tabs.
 
-Schematic shows the beam; Parameters holds its geometry, material and boundary
-conditions. Each is a view of its own in this folder.
+Parameters, first because it is where the work is, holds its geometry, materials
+and boundary conditions; Schematic, the thesis's figure of it, is there to
+look up what a symbol means. Each is a view of its own in this folder.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from activeControlBeamPlate.ui.widgets.tabbedView import TabbedView
 class BeamConfigurationView(TabbedView):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent=parent)
-        self.schematicView = BeamSchematicView()
         self.parametersView = BeamParametersView()
-        self.addPage("Schematic", self.schematicView)
+        self.schematicView = BeamSchematicView()
         self.addPage("Parameters", self.parametersView)
+        self.addPage("Schematic", self.schematicView)

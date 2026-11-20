@@ -47,7 +47,7 @@ def testItIsTheSchematicTabOfThePlateConfiguration(qtbot) -> None:
     qtbot.addWidget(configuration)
 
     assert isinstance(configuration.schematicView, PlateSchematicView)
-    assert configuration.tabs.widget(0) is configuration.schematicView
+    assert configuration.tabs.widget(1) is configuration.schematicView
 
 
 def testItFollowsTheThemeLikeTheBeamFigure(qtbot) -> None:
